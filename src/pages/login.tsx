@@ -3,30 +3,18 @@ import { Form, Formik } from 'formik';
 import Wrapper from '../components/Wrapper';
 import InputField from '../components/InputField';
 import { Box, Button } from '@chakra-ui/react';
-import { useMutation } from 'urql';
+import { useLoginMutation } from '../generated/graphql';
+import { toErrorMap } from '../utils/toErrorMap';
+import { useRouter } from 'next/router';
 
 interface LoginProps {
 
 }
 
-const LOGIN_MUT = `
-mutation Login($username: String!, $password: String!) {
-    login(login: {username: $username, password: $password}) {
-          errors {
-          field
-          message
-        }
-          user {
-          id
-          username
-        }
-    }
-  }
-`
-
 const Login: React.FC<LoginProps> = ({ }) => {
 
-    const [ result , login ] = useMutation(LOGIN_MUT)
+    const router = useRouter()
+    const [ result , login ] = useLoginMutation()
 
     return (
         <Wrapper variant='regular'> 
@@ -35,10 +23,13 @@ const Login: React.FC<LoginProps> = ({ }) => {
                     username: "",
                     password: "",
                 }}
-                onSubmit={async (values) => {
-                    const response = await login(values).then((result) => {
-                        console.log(result)
-                    });
+                onSubmit={async (values, {setErrors}) => {
+                    const response = await login({login: values})
+                    if (response.data?.login.errors) {
+                        setErrors(toErrorMap(response.data.login.errors))
+                    } else if (response.data?.login.user) {
+                        router.push("/");
+                    }
                 }}
             >
 

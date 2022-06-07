@@ -3,6 +3,7 @@
         "willstakayama.vscode-nextjs-snippets",
         "pulkitgangwar.nextjs-snippets",
         "dsznajder.es7-react-js-snippets",
-        "infeng.vscode-react-typescript"
+        "infeng.vscode-react-typescript",
+        "capaj.graphql-codegen-vscode"
     ]
 }

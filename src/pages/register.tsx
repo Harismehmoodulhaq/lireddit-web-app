@@ -3,32 +3,17 @@ import { Form, Formik } from 'formik';
 import Wrapper from '../components/Wrapper';
 import InputField from '../components/InputField';
 import { Box, Button } from '@chakra-ui/react';
-import { useMutation } from 'urql';
+import { useRegisterMutation } from '../generated/graphql';
+import { toErrorMap } from '../utils/toErrorMap';
+import { useRouter } from 'next/router';
 
 interface RegisterProps {
 
 }
 
-const REGISTER_MUT = `
-mutation register($username: String!, $password: String!, $gender: String!) {
-    register(register: {username: $username, gender: $gender, password: $password}) {
-        errors {
-            field
-            message
-        }
-        user {
-            id
-            username
-            gender
-        }
-        
-    }
-}
-`
-
 const Register: React.FC<RegisterProps> = ({ }) => {
-
-    const [result , register ] = useMutation(REGISTER_MUT)
+    const router = useRouter();
+    const [result , register ] = useRegisterMutation()
 
     return (
         <Wrapper variant='regular'>
@@ -38,10 +23,13 @@ const Register: React.FC<RegisterProps> = ({ }) => {
                     gender: "",
                     password: "",
                 }}
-                onSubmit={async (values) => {
-                    const response = await register(values).then((result) => {
-                        console.log(result)
-                    })
+                onSubmit={async (values, {setErrors}) => {
+                    const response = await register({register: values})
+                    if (response.data?.register.errors) {
+                        setErrors(toErrorMap(response.data.register.errors))
+                    } else if (response.data?.register.user) {
+                        router.push("/login");
+                    }
                 }}
             >
 
@@ -50,14 +38,14 @@ const Register: React.FC<RegisterProps> = ({ }) => {
                         <Form>
                             <InputField
                                 name="username"
-                                label='Username'
+                                label='Username*'
                                 placeholder='useranme'
                             />
                                 
                             <Box mt={4}>
                                 <InputField
                                     name='password'
-                                    label='Password'
+                                    label='Password*'
                                     placeholder='password'
                                     type='password'
                                 />
@@ -65,7 +53,7 @@ const Register: React.FC<RegisterProps> = ({ }) => {
                             <Box mt={4}>
                             <InputField
                                     name='gender'
-                                    label='Gender'
+                                    label='Gender*'
                                     placeholder='gender'
                                 />
                             </Box>
