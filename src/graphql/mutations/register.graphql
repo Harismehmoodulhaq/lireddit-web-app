@@ -1,12 +1,5 @@
 mutation register($register: RegisterParams!) {
     register(register: $register) {
-        errors {
-            field
-            message
-        }
-        user {
-            ...RegularUser
-        }
-        
+        ...RegularUserResponse
     }
 } 

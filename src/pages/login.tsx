@@ -2,10 +2,13 @@ import React from 'react';
 import { Form, Formik } from 'formik';
 import Wrapper from '../components/Wrapper';
 import InputField from '../components/InputField';
-import { Box, Button } from '@chakra-ui/react';
+import { Box, Button, Flex, Link } from '@chakra-ui/react';
 import { useLoginMutation } from '../generated/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
 import { useRouter } from 'next/router';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../utils/createUrqlClient';
+import NextLink from 'next/link';
 
 interface LoginProps {
 
@@ -14,17 +17,17 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ }) => {
 
     const router = useRouter()
-    const [ result , login ] = useLoginMutation()
+    const [ , login ] = useLoginMutation()
 
     return (
         <Wrapper variant='regular'> 
             <Formik
                 initialValues={{
-                    username: "",
+                    usernameOrEmail: "",
                     password: "",
                 }}
                 onSubmit={async (values, {setErrors}) => {
-                    const response = await login({login: values})
+                    const response = await login(values)
                     if (response.data?.login.errors) {
                         setErrors(toErrorMap(response.data.login.errors))
                     } else if (response.data?.login.user) {
@@ -37,9 +40,9 @@ const Login: React.FC<LoginProps> = ({ }) => {
                     return (
                         <Form>
                             <InputField
-                                name="username"
-                                label='Username'
-                                placeholder='username'
+                                name="usernameOrEmail"
+                                label='Username or Email'
+                                placeholder='username or email'
                             />
                             <Box mt={4}>
                                 <InputField
@@ -49,6 +52,11 @@ const Login: React.FC<LoginProps> = ({ }) => {
                                     type='password'
                                 />
                             </Box>
+                            <Flex>
+                            <NextLink href='/forgot-password'>
+                                <Link ml="auto" color="GrayText">Forgot your password ?</Link>
+                            </NextLink>
+                            </Flex>
                             <Box mt={4}>
                                 <Button isLoading={isSubmitting} type='submit' colorScheme="green">
                                     Login
@@ -61,4 +69,4 @@ const Login: React.FC<LoginProps> = ({ }) => {
         </Wrapper>
     );
 }
-export default Login
+export default withUrqlClient(createUrqlClient)( Login )
